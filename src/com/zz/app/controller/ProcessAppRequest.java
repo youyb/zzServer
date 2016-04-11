@@ -60,10 +60,6 @@ public class ProcessAppRequest {
 				JSONArray jsonArray = jsonObj.getJSONArray("fileList");
 
 				SaveRecord sr = new SaveRecord();
-				// sr.queryRecordType();
-				// sr.queryRecordCategory();
-				// sr.insertRecordCategory();
-				// sr.queryRecordCategory();
 				sr.queryRecord();
 				sr.queryTask();
 				sr.insertNewRecordAndAssignTask(phoneNum, record_type, record_category, record_time, record_desc,
@@ -125,13 +121,6 @@ public class ProcessAppRequest {
 			e.printStackTrace();
 		}
 		return retMap;
-	}
-
-	@RequestMapping("/index")
-	public String index(Model model) {
-		System.out.println("index....");
-		model.addAttribute("test", "test...");
-		return "index";
 	}
 
 	public Map<String, Object> sendSucessRsp() {

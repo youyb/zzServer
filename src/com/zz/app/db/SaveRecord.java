@@ -69,16 +69,6 @@ public class SaveRecord {
 		}
 	}
 
-	private void deleteRecord() {
-		try {
-			ps = con.prepareStatement("delete from report_record_orig");
-			ps.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		System.out.println("delete successfully.");
-	}
-
 	public void insertNewRecordAndAssignTask(String phoneNum, String type, String category, String record_time,
 			String desc, String longitude, String latitude, String location, JSONArray jsonArray) {
 
@@ -205,21 +195,6 @@ public class SaveRecord {
 			while (rs.next()) {
 				System.out.println(rs.getString("record_category") + ", " + rs.getString("record_category_desc"));
 			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void insertRecordCategory() {
-		String sql = "insert into record_category_tb VALUES (?, ?)";
-		int id = 8;
-		String category = "÷–Œƒ≤‚ ‘aaaaaaaaa";
-		System.out.println(category);
-		try {
-			ps = con.prepareStatement(sql);
-			ps.setInt(1, id);
-			ps.setString(2, category);
-			ps.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

@@ -71,30 +71,6 @@ public class QueryRecord {
 		}
 	}
 
-	public void queryRecordType() {
-		try {
-			ps = con.prepareStatement("select * from record_type_tb");
-			ResultSet rs = ps.executeQuery();
-			while (rs.next()) {
-				System.out.println(rs.getString("record_type") + ", " + rs.getString("record_type_desc"));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void queryRecordCategory() {
-		try {
-			ps = con.prepareStatement("select * from record_category_tb");
-			ResultSet rs = ps.executeQuery();
-			while (rs.next()) {
-				System.out.println(rs.getString("record_category") + ", " + rs.getString("record_category_desc"));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
 	public Map<String, Object> queryRecordByMBR(double minLatitude, double maxLatitude, double minLongitude,
 			double maxLongitude) {
 		Map<String, Object> resultMap = new LinkedHashMap<String, Object>();
@@ -138,17 +114,4 @@ public class QueryRecord {
 		return resultMap;
 	}
 
-	public void queryTask() {
-		try {
-			ps = con.prepareStatement("select * from record_task_tb");
-			ResultSet rs = ps.executeQuery();
-			while (rs.next()) {
-				System.out.println(rs.getString("task_id") + ", " + rs.getString("report_phone") + ", "
-						+ rs.getString("create_time") + "," + rs.getString("dispatch_time") + ","
-						+ rs.getString("end_time") + "," + rs.getString("status") + "," + rs.getString("comment"));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
 }
