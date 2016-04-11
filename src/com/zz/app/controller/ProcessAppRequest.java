@@ -73,7 +73,6 @@ public class ProcessAppRequest {
 
 				// send ok to IOS client
 				retMap = sendSucessRsp();
-				System.out.println("ok.........");
 			}
 
 		} catch (JsonParseException e) {
