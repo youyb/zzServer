@@ -50,7 +50,7 @@ public class SaveRecord {
 						int len = record_path.split("#")[i].length();
 						//beginIdx 2 identifies delete D:
 						//beginIdx 4 identifies delete /opt
-						record_path_db += (record_path.split("#")[i]).substring(4, len);
+						record_path_db += (record_path.split("#")[i]).substring(2, len);
 						if (i != (jsonArray.length() - 1)) {
 							record_path_db += "#";
 						}

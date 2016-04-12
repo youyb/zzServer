@@ -33,8 +33,8 @@ public class QueryRecord {
 		int maxLongitude_new = (int) (maxLongitude * iRatio);
 		String sql = "SELECT * from report_record_orig WHERE longitude>" + minLongitude_new + " AND longitude<"
 				+ maxLongitude_new + " and latitude>" + minLatitude_new + " and latitude<" + maxLatitude_new;
-		// String prefix = "D:";
-		String prefix = "/opt";
+		String prefix = "D:";
+		// String prefix = "/opt";
 		System.out.println("queryRecordByMBR: " + sql);
 		try {
 			int flag = 1;

@@ -15,8 +15,8 @@ import Decoder.BASE64Decoder;
 import Decoder.BASE64Encoder;
 
 public class CommonFun {
-	// private static String imgDir = "D:/zzfile";
-	private static String imgDir = "/opt/zzfile";
+	private static String imgDir = "D:/zzfile";
+	// private static String imgDir = "/opt/zzfile";
 
 	public static String getCurrentTime() {
 		Date dt = new Date();
