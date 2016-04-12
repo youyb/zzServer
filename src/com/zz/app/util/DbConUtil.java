@@ -24,9 +24,6 @@ public class DbConUtil {
 		String username = pro.getProperty("jdbc.username");
 		String password = pro.getProperty("jdbc.password");
 		String url = pro.getProperty("jdbc.url") + "?characterEncoding=utf-8";
-		System.out.println(driverClassName);
-		System.out.println(url);
-		System.out.println(username + ", " + password);
 		try {
 			Class.forName(driverClassName);
 			conn = DriverManager.getConnection(url, username, password);

@@ -15,8 +15,8 @@ import Decoder.BASE64Decoder;
 import Decoder.BASE64Encoder;
 
 public class CommonFun {
-	private static String imgDir = "D:/zzfile";
-	// private static String imgDir = "/opt/zzfile";
+	// private static String imgDir = "D:/zzfile";
+	private static String imgDir = "/opt/zzfile";
 
 	public static String getCurrentTime() {
 		Date dt = new Date();
@@ -92,5 +92,13 @@ public class CommonFun {
 		} catch (Exception e) {
 			return false;
 		}
+	}
+
+	public static void main(String[] args) {
+		// String tmp =
+		// GenerateBase64FromImage("D:/zzfile/2016/4/12/15/1460445670748-1.jpg");
+		// System.out.println("--------------");
+		// System.out.println(tmp);
+		// GenerateImageFromBase64(tmp, "D:/zzfile/tmp.jpg");
 	}
 }
