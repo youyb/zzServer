@@ -60,6 +60,7 @@ public class ProcessAppRequest {
 				JSONArray jsonArray = jsonObj.getJSONArray("fileList");
 
 				SaveRecord sr = new SaveRecord();
+				// sr.queryRecordCategory();
 				sr.queryRecord();
 				sr.queryTask();
 				sr.insertNewRecordAndAssignTask(phoneNum, record_type, record_category, record_time, record_desc,
