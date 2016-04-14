@@ -12,6 +12,7 @@ import org.json.JSONArray;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zz.app.util.CommonFun;
 import com.zz.app.util.DbConUtil;
+import com.zz.app.util.MinBoundaryRect;
 
 public class SaveRecord {
 	private Connection conn;
@@ -24,13 +25,14 @@ public class SaveRecord {
 		}
 	}
 
-	public void insertNewRecordAndAssignTask(String phoneNum, String type, String category, String record_time,
+	public void insertNewRecordAndAssignTask(String phoneNum, String type, String category, String report_time,
 			String desc, String longitude, String latitude, String location, JSONArray jsonArray) {
 
 		int longitude_new = (int) (Float.parseFloat(longitude) * 3600000);
 		int latitude_new = (int) (Float.parseFloat(latitude) * 3600000);
 		String record_path = "";
 		String record_path_db = "";
+		String task_id_tmp = "";
 
 		// save files on disk
 		if (jsonArray != null && jsonArray.length() > 0) {
@@ -48,8 +50,8 @@ public class SaveRecord {
 						System.out.println(content);
 						System.out.println(record_path.split("#")[i]);
 						int len = record_path.split("#")[i].length();
-						//beginIdx 2 identifies delete D:
-						//beginIdx 4 identifies delete /opt
+						// beginIdx 2 identifies delete D:
+						// beginIdx 4 identifies delete /opt
 						record_path_db += (record_path.split("#")[i]).substring(2, len);
 						if (i != (jsonArray.length() - 1)) {
 							record_path_db += "#";
@@ -64,11 +66,49 @@ public class SaveRecord {
 			}
 		}
 
-		System.out.println(record_path_db);
+		// get nearby 3km MBR
+		boolean flag_task = true; // default create task for new record
+		MinBoundaryRect mbr = new MinBoundaryRect(Double.parseDouble(latitude), Double.parseDouble(longitude), 3.0);
+		System.out.println("nearby 3km Latitude: " + mbr.minLatitude + ", " + mbr.maxLatitude);
+		System.out.println("nearby 3km Longitude: " + mbr.minLongitude + ", " + mbr.maxLongitude);
+		int iRatio = 3600000;
+		int minLatitude_new = (int) (mbr.minLatitude * iRatio);
+		int maxLatitude_new = (int) (mbr.maxLatitude * iRatio);
+		int minLongitude_new = (int) (mbr.minLongitude * iRatio);
+		int maxLongitude_new = (int) (mbr.maxLongitude * iRatio);
+		System.out.println("nearby 3km Latitude: " + minLatitude_new + ", " + maxLatitude_new);
+		System.out.println("nearby 3km Longitude: " + minLongitude_new + ", " + maxLongitude_new);
+		String sql_if_create_task = "SELECT * from report_record_orig WHERE ( (record_category = " + category + ") "
+				+ "AND (longitude>" + minLongitude_new + " AND longitude<" + maxLongitude_new + " AND latitude>"
+				+ minLatitude_new + " AND latitude<" + maxLatitude_new + ") "
+				+ "AND (UNIX_TIMESTAMP(record_time) > UNIX_TIMESTAMP('" + report_time + "')-3600) );";
+		System.out.println(sql_if_create_task);
+		try {
+			ps = conn.prepareStatement(sql_if_create_task);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				System.out.println(
+						"The task for this record has been created, so just save this record, not asssign new task.");
+				flag_task = false;
+				// should get task_id from exist record
+				task_id_tmp = rs.getString("task_id");
+				System.out.println("task_id_tmp:" + task_id_tmp);
+			} else {
+				System.out.println("Asssign a new task for this record.");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		System.out.println("flag_task:" + flag_task);
 
 		// insert one record into report_record_orig table
 		String record_id = "r_" + System.currentTimeMillis();
-		String task_id = "t_" + System.currentTimeMillis();
+		String task_id;
+		if (flag_task) {
+			task_id = "t_" + System.currentTimeMillis();
+		} else {
+			task_id = task_id_tmp; // use exist task_id
+		}
 		// String record_id = "r_" + UUID.randomUUID().toString();
 		// String task_id = "t_" + UUID.randomUUID().toString();
 		String sql_record = "insert into report_record_orig VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -80,7 +120,7 @@ public class SaveRecord {
 			ps.setString(3, phoneNum);
 			ps.setInt(4, Integer.parseInt(type));
 			ps.setInt(5, Integer.parseInt(category));
-			ps.setString(6, record_time);
+			ps.setString(6, report_time);
 			ps.setString(7, desc);
 			ps.setString(8, record_path_db);
 			ps.setInt(9, longitude_new);
@@ -91,26 +131,31 @@ public class SaveRecord {
 			e.printStackTrace();
 		}
 
-		// assign a task for this new record
-		String sql_task = "insert into record_task_tb VALUES (?, ?, ?, null, null, ?, ?)";
-		String create_time = CommonFun.getCurrentTime();
-		System.out.println("task create time: " + create_time);
-		// String dispatch_time = "";
-		// String end_time = "";
-		String comments = "comments here";
-		int status = 0; // 0: 待处理, 1: 处理中, 2: 已完成
-		try {
-			ps = conn.prepareStatement(sql_task);
-			ps.setString(1, task_id);
-			ps.setString(2, phoneNum);
-			ps.setString(3, create_time);
-			// ps.setString(4, dispatch_time);
-			// ps.setString(5, end_time);
-			ps.setInt(4, status);
-			ps.setString(5, comments);
-			ps.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
+		if (flag_task) {
+			System.out.println("create a new task for report record...");
+			// assign a task for this new record
+			String sql_task = "insert into record_task_tb VALUES (?, ?, ?, null, null, ?, ?)";
+			String create_time = CommonFun.getCurrentTime();
+			System.out.println("task create time: " + create_time);
+			// String dispatch_time = "";
+			// String end_time = "";
+			String comments = "comments here";
+			int status = 0; // 0: 待处理, 1: 处理中, 2: 已完成
+			try {
+				ps = conn.prepareStatement(sql_task);
+				ps.setString(1, task_id);
+				ps.setString(2, phoneNum);
+				ps.setString(3, create_time);
+				// ps.setString(4, dispatch_time);
+				// ps.setString(5, end_time);
+				ps.setInt(4, status);
+				ps.setString(5, comments);
+				ps.executeUpdate();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		} else {
+			System.out.println("use exist task_id for report record...");
 		}
 
 	}
