@@ -78,8 +78,8 @@ public class SaveRecord {
 		int maxLongitude_new = (int) (mbr.maxLongitude * iRatio);
 		System.out.println("nearby 3km Latitude: " + minLatitude_new + ", " + maxLatitude_new);
 		System.out.println("nearby 3km Longitude: " + minLongitude_new + ", " + maxLongitude_new);
-		String sql_if_create_task = "SELECT * from report_record_orig WHERE ( (record_category = " + category + ") "
-				+ "AND (longitude>" + minLongitude_new + " AND longitude<" + maxLongitude_new + " AND latitude>"
+		String sql_if_create_task = "SELECT task_id from report_record_orig WHERE ( (record_category = " + category
+				+ ") " + "AND (longitude>" + minLongitude_new + " AND longitude<" + maxLongitude_new + " AND latitude>"
 				+ minLatitude_new + " AND latitude<" + maxLatitude_new + ") "
 				+ "AND (UNIX_TIMESTAMP(record_time) > UNIX_TIMESTAMP('" + report_time + "')-3600) );";
 		System.out.println(sql_if_create_task);
@@ -134,7 +134,7 @@ public class SaveRecord {
 		if (flag_task) {
 			System.out.println("create a new task for report record...");
 			// assign a task for this new record
-			String sql_task = "insert into record_task_tb VALUES (?, ?, ?, null, null, ?, ?)";
+			String sql_task = "insert into record_task_tb VALUES (?, ?, null, ?, null, null, ?, ?, ?)";
 			String create_time = CommonFun.getCurrentTime();
 			System.out.println("task create time: " + create_time);
 			// String dispatch_time = "";
@@ -144,20 +144,67 @@ public class SaveRecord {
 			try {
 				ps = conn.prepareStatement(sql_task);
 				ps.setString(1, task_id);
-				ps.setString(2, phoneNum);
+				ps.setInt(2, Integer.parseInt(category));
 				ps.setString(3, create_time);
 				// ps.setString(4, dispatch_time);
 				// ps.setString(5, end_time);
 				ps.setInt(4, status);
-				ps.setString(5, comments);
+				ps.setInt(5, 1); // initial record count for each task
+				ps.setString(6, comments);
 				ps.executeUpdate();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 		} else {
-			System.out.println("use exist task_id for report record...");
-		}
+			System.out.println("use exist task_id for report record and update record count.");
+			String sql_update_count = "update record_task_tb set record_count = record_count + 1 WHERE task_id = '"
+					+ task_id + "'";
+			System.out.println(sql_update_count);
+			// int status = 0; // 0: 待处理, 1: 处理中, 2: 已完成
+			try {
+				ps = conn.prepareStatement(sql_update_count);
+				ps.executeUpdate();
+				System.out.println("update record_count++ ok...");
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 
+			// auto update task status according each task's max record count,
+			int iThreshold = 5;
+			System.out.println("update task status from 0 to 1 if record count up to threshold.");
+			String sql_update_status = "update record_task_tb set status = 1 WHERE task_id = '" + task_id
+					+ "' and record_count > " + iThreshold;
+			System.out.println(sql_update_status);
+			try {
+				ps = conn.prepareStatement(sql_update_status);
+				ps.executeUpdate();
+				System.out.println("update status from 0 to 1 ok...");
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+
+			// send task status push notification to client if status == 1
+			System.out.println("send task status push notification to client.");
+			String sql_query_status = "select status from record_task_tb WHERE task_id = '" + task_id + "'";
+			System.out.println(sql_query_status);
+			try {
+				ps = conn.prepareStatement(sql_query_status);
+				ResultSet rs = ps.executeQuery();
+				if (rs.next()) {
+					int task_status_tmp = Integer.parseInt(rs.getString("status"));
+					System.out.println("current task status: " + task_status_tmp);
+					if (task_status_tmp == 1) {
+						System.out.println("call script to send notification......");
+						// 1. send push notification
+
+						// 2. update dispatch_time in table
+
+					}
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public void queryRecordType() {
@@ -205,9 +252,10 @@ public class SaveRecord {
 			ps = conn.prepareStatement("select * from record_task_tb");
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
-				System.out.println(rs.getString("task_id") + ", " + rs.getString("report_phone") + ", "
-						+ rs.getString("create_time") + "," + rs.getString("dispatch_time") + ","
-						+ rs.getString("end_time") + "," + rs.getString("status") + "," + rs.getString("comment"));
+				System.out.println(rs.getString("task_id") + ", " + rs.getString("task_type") + ", "
+						+ rs.getString("company_id") + ", " + rs.getString("create_time") + ","
+						+ rs.getString("dispatch_time") + "," + rs.getString("end_time") + "," + rs.getString("status")
+						+ rs.getString("record_count") + "," + rs.getString("comment"));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
