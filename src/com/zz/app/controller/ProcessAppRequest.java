@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zz.app.db.QueryRecord;
 import com.zz.app.db.SaveRecord;
+import com.zz.app.db.SaveUserInfo;
 import com.zz.app.util.MinBoundaryRect;
 
 @Controller
@@ -109,6 +110,43 @@ public class ProcessAppRequest {
 				QueryRecord qr = new QueryRecord();
 				retMap = qr.queryRecordByMBR(mbr.minLatitude, mbr.maxLatitude, mbr.minLongitude, mbr.maxLongitude);
 
+			}
+
+		} catch (JsonParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return retMap;
+	}
+
+	@RequestMapping(value = "/token", method = RequestMethod.POST, produces = "application/json")
+	@ResponseBody
+	public Map<String, Object> processUserLogin(@RequestBody String json) {
+		System.out.println(json);
+		Map<String, Object> retMap = null;
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> jsonMap = mapper.readValue(json, Map.class);
+			if (jsonMap != null && jsonMap.size() > 0) {
+				String phone_num = jsonMap.get("phone_num").toString();
+				String phone_type = jsonMap.get("phone_type").toString();
+				String token = jsonMap.get("token").toString();
+
+				System.out.println(phone_num);
+				System.out.println(phone_type);
+				System.out.println(token);
+
+				SaveUserInfo sur = new SaveUserInfo();
+				sur.queryUserInfo();
+				sur.saveAll(phone_num, phone_type, token);
+				sur.queryUserInfo();
 			}
 
 		} catch (JsonParseException e) {
