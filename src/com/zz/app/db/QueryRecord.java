@@ -46,11 +46,17 @@ public class QueryRecord {
 				}
 				Map<String, Object> successMap = new LinkedHashMap<String, Object>();
 				System.out.println(rs.getString("record_id") + ", " + rs.getString("task_id") + ", "
-						+ rs.getString("longitude") + "," + rs.getString("latitude") + "," + rs.getString("location"));
+						+ rs.getString("record_desc") + ", " + rs.getString("longitude") + ","
+						+ rs.getString("latitude") + "," + rs.getString("location"));
 				successMap.put("record_category", rs.getString("record_category"));
+				successMap.put("record_desc", rs.getString("record_desc"));
 				successMap.put("longitude", rs.getString("longitude"));
 				successMap.put("latitude", rs.getString("latitude"));
 				successMap.put("location", rs.getString("location"));
+				// get task create_time by task_id
+				String task_create_time = queryCreateTimeById(rs.getString("task_id"));
+				System.out.println("task_create_time: " + task_create_time);
+				successMap.put("task_create_time", task_create_time);
 				// only send one if more
 				System.out.println(rs.getString("record_path").split("#")[0]);
 				String tmpPath = prefix + rs.getString("record_path").split("#")[0];
@@ -72,6 +78,24 @@ public class QueryRecord {
 		}
 
 		return resultMap;
+	}
+
+	private String queryCreateTimeById(String id) {
+		String retTime = "";
+		String sql_create_time = "SELECT create_time from record_task_tb WHERE task_id = '" + id + "'";
+		System.out.println("queryCreateTimeById: " + sql_create_time);
+		try {
+			ps = conn.prepareStatement(sql_create_time);
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				retTime = rs.getString("create_time");
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return retTime;
 	}
 
 }

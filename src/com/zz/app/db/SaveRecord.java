@@ -33,6 +33,8 @@ public class SaveRecord {
 		String record_path = "";
 		String record_path_db = "";
 		String task_id_tmp = "";
+		String imgRootDir = "D:";
+		// String imgRootDir = "/opt";
 
 		// save files on disk
 		if (jsonArray != null && jsonArray.length() > 0) {
@@ -52,7 +54,8 @@ public class SaveRecord {
 						int len = record_path.split("#")[i].length();
 						// beginIdx 2 identifies delete D:
 						// beginIdx 4 identifies delete /opt
-						record_path_db += (record_path.split("#")[i]).substring(2, len);
+						System.out.println("imgRootDir.len: " + imgRootDir.length());
+						record_path_db += (record_path.split("#")[i]).substring(imgRootDir.length(), len);
 						if (i != (jsonArray.length() - 1)) {
 							record_path_db += "#";
 						}
@@ -67,6 +70,7 @@ public class SaveRecord {
 		}
 
 		// get nearby 3km MBR
+		boolean flag_similar_image = true; // default two different image
 		boolean flag_task = true; // default create task for new record
 		MinBoundaryRect mbr = new MinBoundaryRect(Double.parseDouble(latitude), Double.parseDouble(longitude), 3.0);
 		System.out.println("nearby 3km Latitude: " + mbr.minLatitude + ", " + mbr.maxLatitude);
@@ -78,21 +82,29 @@ public class SaveRecord {
 		int maxLongitude_new = (int) (mbr.maxLongitude * iRatio);
 		System.out.println("nearby 3km Latitude: " + minLatitude_new + ", " + maxLatitude_new);
 		System.out.println("nearby 3km Longitude: " + minLongitude_new + ", " + maxLongitude_new);
-		String sql_if_create_task = "SELECT task_id from report_record_orig WHERE ( (record_category = " + category
-				+ ") " + "AND (longitude>" + minLongitude_new + " AND longitude<" + maxLongitude_new + " AND latitude>"
-				+ minLatitude_new + " AND latitude<" + maxLatitude_new + ") "
+		String sql_if_create_task = "SELECT task_id, record_path from report_record_orig WHERE ( (record_category = "
+				+ category + ") " + "AND (longitude>" + minLongitude_new + " AND longitude<" + maxLongitude_new
+				+ " AND latitude>" + minLatitude_new + " AND latitude<" + maxLatitude_new + ") "
 				+ "AND (UNIX_TIMESTAMP(record_time) > UNIX_TIMESTAMP('" + report_time + "')-3600) );";
 		System.out.println(sql_if_create_task);
 		try {
 			ps = conn.prepareStatement(sql_if_create_task);
 			ResultSet rs = ps.executeQuery();
 			if (rs.next()) {
-				System.out.println(
-						"The task for this record has been created, so just save this record, not asssign new task.");
-				flag_task = false;
-				// should get task_id from exist record
-				task_id_tmp = rs.getString("task_id");
-				System.out.println("task_id_tmp:" + task_id_tmp);
+				// only compare one image if more
+				String srcImgPath = imgRootDir + rs.getString("record_path").split("#")[0];
+				String dstImgPath = record_path.split("#")[0];
+				System.out.println("srcImgPath: " + srcImgPath);
+				System.out.println("dstImgPath: " + dstImgPath);
+				// sflag_similar_image = CallAPI(srcImgPath, dstImgPath);
+				if (flag_similar_image) {
+					System.out.println(
+							"The task for this record has been created, so just save this record, not asssign new task.");
+					flag_task = false;
+					// should get task_id from exist record
+					task_id_tmp = rs.getString("task_id");
+					System.out.println("task_id_tmp:" + task_id_tmp);
+				}
 			} else {
 				System.out.println("Asssign a new task for this record.");
 			}
