@@ -36,8 +36,8 @@ public class SaveRecord {
 		String record_path = "";
 		String record_path_db = "";
 		String task_id_tmp = "";
-		String imgRootDir = "D:";
-		// String imgRootDir = "/opt";
+		String imgRootDir = (CommonFun.flag_debug == true) ? "D:" : "/opt";
+		System.out.println("imgRootDir: " + imgRootDir);
 
 		// save files on disk
 		if (jsonArray != null && jsonArray.length() > 0) {

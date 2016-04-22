@@ -15,8 +15,8 @@ import Decoder.BASE64Decoder;
 import Decoder.BASE64Encoder;
 
 public class CommonFun {
-	private static String imgDir = "D:/zzfile";
-	// private static String imgDir = "/opt/zzfile";
+	public static boolean flag_debug = true;
+	private static String imgDir = (CommonFun.flag_debug == true) ? "D:/zzfile" : "/opt/zzfile";
 
 	public static String getCurrentTime() {
 		Date dt = new Date();
@@ -26,6 +26,7 @@ public class CommonFun {
 
 	public static String getRecordPath(int count) {
 		System.out.println("build path image count: " + count);
+		System.out.println("CommonFun.imgDir: " + CommonFun.imgDir);
 		Calendar date = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"));
 		File file = new File(imgDir + File.separator + date.get(Calendar.YEAR) + File.separator
 				+ (date.get(Calendar.MONTH) + 1) + File.separator + date.get(Calendar.DAY_OF_MONTH) + File.separator
