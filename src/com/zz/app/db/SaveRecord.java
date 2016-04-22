@@ -8,7 +8,10 @@ import java.sql.SQLException;
 import java.util.Map;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 
+import com.faceMatch.IMatchCompare;
+import com.faceMatch.impl.MatchCompareImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zz.app.util.CommonFun;
 import com.zz.app.util.DbConUtil;
@@ -42,10 +45,10 @@ public class SaveRecord {
 			System.out.println(record_path);
 			ObjectMapper mapper = new ObjectMapper();
 			for (int i = 0; i < jsonArray.length(); i++) {
-				// save each file on disk
-				String eachImage = jsonArray.get(i).toString();
-				System.out.println("each: " + eachImage);
 				try {
+					// save each file on disk
+					String eachImage = jsonArray.get(i).toString();
+					System.out.println("each: " + eachImage);
 					Map<String, Object> fileMap = mapper.readValue(eachImage, Map.class);
 					if (fileMap != null && fileMap.size() > 0) {
 						String content = fileMap.get("content").toString();
@@ -61,7 +64,7 @@ public class SaveRecord {
 						}
 						CommonFun.GenerateImageFromBase64(content, record_path.split("#")[i]);
 					}
-				} catch (IOException e) {
+				} catch (IOException | JSONException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -70,7 +73,7 @@ public class SaveRecord {
 		}
 
 		// get nearby 3km MBR
-		boolean flag_similar_image = true; // default two different image
+		int flag_similar_image = 0; // default two different person
 		boolean flag_task = true; // default create task for new record
 		MinBoundaryRect mbr = new MinBoundaryRect(Double.parseDouble(latitude), Double.parseDouble(longitude), 3.0);
 		System.out.println("nearby 3km Latitude: " + mbr.minLatitude + ", " + mbr.maxLatitude);
@@ -96,8 +99,11 @@ public class SaveRecord {
 				String dstImgPath = record_path.split("#")[0];
 				System.out.println("srcImgPath: " + srcImgPath);
 				System.out.println("dstImgPath: " + dstImgPath);
-				// sflag_similar_image = CallAPI(srcImgPath, dstImgPath);
-				if (flag_similar_image) {
+				IMatchCompare mc = new MatchCompareImpl();
+				// flag_similar_image = mc.faceMatchCompare(srcImgPath,
+				// dstImgPath);
+				System.out.println("flag_similar_image: " + flag_similar_image);
+				if (flag_similar_image == 0) { // same person
 					System.out.println(
 							"The task for this record has been created, so just save this record, not asssign new task.");
 					flag_task = false;
