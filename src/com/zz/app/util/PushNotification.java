@@ -8,7 +8,7 @@ import javapns.data.PayLoad;
 public class PushNotification {
 
 	public static void main(String[] args) {
-		String deviceToken = "e3b6088223b0d1153a5e38f51374e5653c78335eaa8b0c49b80f299df69971ce";
+		String deviceToken = "ce4a4852a81ff322e0eeb1f816e60fe49a41737e96609055384c6751a529791b";
 		PushNotification.pushMsg(deviceToken);
 	}
 
@@ -17,7 +17,7 @@ public class PushNotification {
 		try {
 			// define msg format
 			PayLoad pl = new PayLoad();
-			pl.addAlert("This is a test!!!");
+			pl.addAlert("This record is being processed.");
 			pl.addBadge(1);
 			pl.addSound("default");
 			// reg token
@@ -27,7 +27,7 @@ public class PushNotification {
 			// connect APNS
 			String host = "gateway.sandbox.push.apple.com";
 			int port = 2195;
-			String certificatePath = "D:/work/zz/push/ck.pem";
+			String certificatePath = "D:/work/zz/push/aps_developer_identity.p12";
 			String certificatePwd = "123456";
 			pushManager.initializeConnection(host, port, certificatePath, certificatePwd,
 					SSLConnectionHelper.KEYSTORE_TYPE_PKCS12);
@@ -36,9 +36,9 @@ public class PushNotification {
 			System.out.println("Push msg: " + client.getToken() + "\n" + pl.toString());
 			pushManager.sendNotification(client, pl);
 			// close connection with APNS
-			// pushManager.stopConnection();
+			pushManager.stopConnection();
 			// delete token
-			// pushManager.removeDevice("iPhone");
+			pushManager.removeDevice("iPhone");
 			System.out.println("Push End...");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
