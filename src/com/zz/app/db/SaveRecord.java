@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zz.app.util.CommonFun;
 import com.zz.app.util.DbConUtil;
 import com.zz.app.util.MinBoundaryRect;
+import com.zz.app.util.UDPClient;
 
 public class SaveRecord {
 	private Connection conn;
@@ -130,7 +131,7 @@ public class SaveRecord {
 		// String record_id = "r_" + UUID.randomUUID().toString();
 		// String task_id = "t_" + UUID.randomUUID().toString();
 		String sql_record = "insert into report_record_orig VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-		System.out.println(record_id + ",   " + task_id);
+		System.out.println(record_id + ", " + task_id);
 		try {
 			ps = conn.prepareStatement(sql_record);
 			ps.setString(1, record_id);
@@ -174,6 +175,7 @@ public class SaveRecord {
 				e.printStackTrace();
 			}
 		} else {
+			// update record_count
 			System.out.println("use exist task_id for report record and update record count.");
 			String sql_update_count = "update record_task_tb set record_count = record_count + 1 WHERE task_id = '"
 					+ task_id + "'";
@@ -187,6 +189,10 @@ public class SaveRecord {
 				e.printStackTrace();
 			}
 
+			// send combine record msg to web UI
+			String taskStr = record_id + "," + task_id;
+			System.out.println("taskStr: " + taskStr);
+			UDPClient.sendTaskInfo(taskStr);
 			// auto update task status according each task's max record count,
 			int iThreshold = 5;
 			System.out.println("update task status from 0 to 1 if record count up to threshold.");
